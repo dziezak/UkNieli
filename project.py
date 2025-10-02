@@ -6,12 +6,11 @@ from sklearn.metrics import roc_auc_score
 import pandas as pd
 import numpy as np
 
-# 1. Wczytaj dane
-df = pd.read_csv("tox21.csv")  # zakładam, że plik już masz
+# Wczytuje dane do projektu z tox21.csv
+df = pd.read_csv("tox21.csv")
 
-# 2. Wybierz jedną etykietę do klasyfikacji, np. NR-AR
 target = "NR-AR"  
-df = df.dropna(subset=[target])  # usuń brakujące etykiety
+df = df.dropna(subset=[target])  # usuwam brakujące etykiety
 
 # 3. Funkcja: SMILES -> fingerprint
 def smiles_to_fp(smiles):

@@ -3,5 +3,8 @@ var2 = 2
 sum = var1 + var2
 print(sum)
 
+tabela = [var1, var2]
+print(tabela)
+
 
 
