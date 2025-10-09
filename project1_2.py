@@ -1,10 +1,7 @@
 from rdkit import Chem
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
-from sklearn.feature_extraction.text import CountVectorizer
 from sktime.classification.dictionary_based import WEASEL
-from sktime.transformations.panel.compose import ColumnConcatenator
-from sktime.datatypes._panel._convert import from_2d_array_to_nested
 import pandas as pd
 import numpy as np
 
@@ -13,18 +10,16 @@ df = pd.read_csv("tox21.csv")
 target = "NR-AR"
 df = df.dropna(subset=[target])
 
-# Tokenizacja SMILES jako stringi
+# Tokenizacja SMILES jako lista znaków
 def tokenize_smiles(smiles):
-    return " ".join(list(smiles))  # prosta tokenizacja znak po znaku
+    return pd.Series(list(smiles))  # np. "CCO" → ["C", "C", "O"]
 
-df["smiles_tokenized"] = df["smiles"].apply(tokenize_smiles)
+# Tworzymy nested DataFrame
+X_nested = pd.DataFrame([tokenize_smiles(s) for s in df["smiles"]])
+X_nested = X_nested.apply(lambda row: row.dropna().reset_index(drop=True), axis=1)
+X_nested = pd.DataFrame({"smiles": X_nested["smiles"]})  # kolumna z sekwencjami
 
-# Przekształcenie do formatu nested DataFrame (wymagane przez sktime)
-X_text = df["smiles_tokenized"].values
 y = df[target].values.astype(int)
-
-# Zamiana na nested format
-X_nested = from_2d_array_to_nested(np.array([[s] for s in X_text]))
 
 # Podział danych
 X_train, X_test, y_train, y_test = train_test_split(X_nested, y, test_size=0.2, random_state=42)
@@ -32,9 +27,10 @@ X_train, X_test, y_train, y_test = train_test_split(X_nested, y, test_size=0.2, 
 # Klasyfikator WEASEL z ograniczeniem liczby cech
 clf = WEASEL(
     random_state=42,
-    feature_selection="chi2",  # ogranicza liczbę cech
-    alphabet_size=2,           # mniej symboli = mniejsza macierz
-    bigrams=False              # wyłączenie bigramów
+    feature_selection="chi2",
+    alphabet_size=2,
+    bigrams=False,
+    min_window=1
 )
 
 # Trening
