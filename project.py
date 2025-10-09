@@ -6,31 +6,33 @@ from sklearn.metrics import roc_auc_score
 import pandas as pd
 import numpy as np
 
-# Wczytuje dane do projektu z tox21.csv
 df = pd.read_csv("tox21.csv")
 
 target = "NR-AR"  
-df = df.dropna(subset=[target])  # usuwam brakujące etykiety
+df = df.dropna(subset=[target])  # usuwamy brakujące etykiety
 
-# 3. Funkcja: SMILES -> fingerprint
+# SMILES -> fingerprint
 def smiles_to_fp(smiles):
     mol = Chem.MolFromSmiles(smiles)
-    if mol is None:  # obsłuż błędne SMILES
+    if mol is None: 
         return np.zeros(1024)
     return np.array(AllChem.GetMorganFingerprintAsBitVect(mol, radius=2, nBits=1024))
 
-# 4. Zamiana wszystkich SMILES na wektory
+# SMILES -> wektory
 X = np.array([smiles_to_fp(s) for s in df["smiles"]])
 y = df[target].values.astype(int)
 
-# 5. Podział danych
+# Dziele dane do treningu
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# 6. Model baseline – Random Forest
-clf = RandomForestClassifier(n_estimators=200, random_state=42)
+# Model baseline – Random Forest ( czy moge korzstać z pythonowych Lasów czy mam pisać własne? )
+clf = RandomForestClassifier(n_estimators=200, random_state=42) # randomowe wartości polecone z internetu dla tej bazy
+# tutaj klasyfikatory stringowe!!! 
+# sktime. Tutaj bęzie duża macierz. Weasel ???
+# Weasel wygeneruje za dużą macierz i co z tym zrobić? 
 clf.fit(X_train, y_train)
 
-# 7. Ewaluacja
+# Ewaluacja
 y_pred = clf.predict_proba(X_test)[:, 1]  # prawdopodobieństwo klasy "toksyczna"
 roc = roc_auc_score(y_test, y_pred)
 
