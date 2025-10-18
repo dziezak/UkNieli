@@ -1,9 +1,22 @@
-import pandas as pd
-df = pd.read_csv("tox21.csv")
-pd.set_option('display.max_columns', None)
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+import tensorflow_addons as tfa
 
-print("Kolumnt w zrobirze:")
-print(df.columns.tolist())
+from kaggle_datasets import KaggleDatasets
+import matplotlib.pyplot as plt
+import numpy as np
 
-print("\nPierwsze 5 wierzy:")
-print(df.head())
+try:
+    tpu = tf.distribute.cluster_resolver.TPUClusterResolver()
+    print('Device:', tpu.master())
+    tf.config.experimental_connect_to_cluster(tpu)
+    tf.tpu.experimental.initialize_tpu_system(tpu)
+    strategy = tf.distribute.experimental.TPUStrategy(tpu)
+except:
+    strategy = tf.distribute.get_strategy()
+print('Number of replicas:', strategy.num_replicas_in_sync)
+
+AUTOTUNE = tf.data.experimental.AUTOTUNE
+    
+print(tf.__version__)
