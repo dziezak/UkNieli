@@ -1,0 +1,77 @@
+import matplotlib
+matplotlib.use("TkAgg")  # interaktywny backend
+import matplotlib.pyplot as plt
+from PIL import Image, ImageDraw
+
+IMG_W, IMG_H = 120, 70
+LINE_Y = [20, 25, 30, 35, 40]
+NOTE_RADIUS_X = 5
+NOTE_RADIUS_Y = 3
+
+note_positions = {
+    "C4": 45,
+    "D4": 42.5,
+    "E4": 40,
+    "F4": 37.5,
+    "G4": 35,
+    "A4": 32.5,
+    "H4": 30,
+    "C5": 27.5,
+    "D5": 25,
+    "E5": 22.5,
+    "F5": 20,
+    "G5": 17.5,
+    "A5": 15,
+}
+
+def draw_note_interactive(save_path="my_note.png"):
+    print("Kliknij w miejscu, gdzie chcesz postawić nutę (jedno kliknięcie).")
+    fig, ax = plt.subplots(figsize=(5, 3))
+    ax.set_xlim(0, 10)
+    ax.set_ylim(0, 10)
+    for y in LINE_Y:
+        ax.plot([0, 10], [3 + y/10, 3 + y/10], color="black", linewidth=1)
+    plt.show(block=False)
+    coords = plt.ginput(1, timeout=-1)
+    plt.close(fig)
+
+    if len(coords) == 0:
+        print("Nie narysowano nuty.")
+        return None
+
+    # Wybranie nuty
+    note_name = input(f"Wpisz nazwę nuty {list(note_positions.keys())}: ")
+
+    if note_name not in note_positions:
+        print("Niepoprawna nuta.")
+        return None
+
+    # Generujemy obraz w skali treningowej
+    img = Image.new("L", (IMG_W, IMG_H), 255)
+    draw = ImageDraw.Draw(img)
+
+    # pięciolinia
+    for y in LINE_Y:
+        draw.line((10, y, IMG_W-10, y), fill=0, width=1)
+
+    # linie pomocnicze
+    if note_name == "C4":
+        draw.line((50, 45, 70, 45), fill=0, width=1)
+    elif note_name == "A5":
+        draw.line((50, 15, 70, 15), fill=0, width=1)
+
+    # nuta
+    y_note = note_positions[note_name]
+    draw.ellipse(
+        (IMG_W//2 - NOTE_RADIUS_X, y_note - NOTE_RADIUS_Y,
+         IMG_W//2 + NOTE_RADIUS_X, y_note + NOTE_RADIUS_Y),
+        fill=0
+    )
+
+    img.save(save_path)
+    print(f"Nuta {note_name} zapisana jako {save_path}")
+    return save_path
+
+# przykład
+if __name__ == "__main__":
+    draw_note_interactive()
